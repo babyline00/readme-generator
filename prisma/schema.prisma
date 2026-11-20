@@ -1,0 +1,39 @@
+// Prisma schema for README Generator Copilot.
+// Two tables: Repo (one per unique owner/name) and Generation (each LLM analysis pass).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Repo {
+  id             String       @id @default(cuid())
+  owner          String
+  name           String
+  url            String
+  defaultBranch  String?
+  description    String?
+  language       String?
+  stars          Int?
+  license        String?
+  lastAnalyzedAt DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  generations    Generation[]
+  @@unique([owner, name])
+}
+
+model Generation {
+  id             String   @id @default(cuid())
+  repoId         String
+  repo           Repo     @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  analysisJson   String
+  readmeMarkdown String
+  sectionsJson   String
+  createdAt      DateTime @default(now())
+  @@index([repoId])
+}
